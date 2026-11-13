@@ -1,6 +1,6 @@
 # costmap-geo
 
-`costmap-from-ortho` turns the rasters OpenDroneMap (ODM) produces from a drone survey into a single-band `u8` cost GeoTIFF. The `costmap` crate's tiled store loads the file, and QGIS and GDAL open it directly.
+`costmap-from-ortho` turns the rasters OpenDroneMap (ODM) produces from a drone survey into a single-band `u8` cost GeoTIFF. The [`costmap`](https://github.com/MJohnson459/costmap) crate's tiled store loads the file, its `costmap_ros` node serves it to Nav2, and QGIS and GDAL open it directly.
 
 ## Process
 
@@ -44,25 +44,7 @@
 
    Use `COMPRESS=DEFLATE`. GDAL's default LZW COG fails to load in `costmap::CostGeoTiff` on the Aukerman dataset ("no lzw end code found" from the `tiff` crate); the DEFLATE file loads.
 
-   `cost.tif` records `RESAMPLING=MAX` on each of its overviews, and `CostGeoTiff::overview_is_max_pooled` reports them max-pooled. The COG driver of GDAL 3.11 writes no such record, whether it resamples the overviews or copies them with `-co OVERVIEWS=FORCE_USE_EXISTING`, so the converted file's overviews are not reported max-pooled and the farm demo max-pools the raster while streaming it instead.
-
-## ROS maps
-
-`costmap-from-ros-map` converts a ROS map (YAML and image) to a cost GeoTIFF:
-
-```sh
-cargo run --release -p costmap-geo --bin costmap-from-ros-map -- map.yaml map.tif
-```
-
-A ROS map image cannot be read in part, so a program that uses one holds it
-whole. A GeoTIFF is read strip by strip or tile by tile; `costmap_window_server`
-in [`costmap_ros`](../costmap_ros) holds only the chunks near the robot.
-
-- Occupied cells become 254, free cells 0 and unknown cells 255, by
-  `costmap::cost_from_occupancy`.
-- The raster's lower-left corner is the YAML origin, written as projected
-  coordinates with no EPSG code. The output is not georeferenced to the Earth.
-- The whole map is in memory during the conversion.
+   `cost.tif` records `RESAMPLING=MAX` on each of its overviews, and `CostGeoTiff::overview_is_max_pooled` reports them max-pooled. The COG driver of GDAL 3.11 writes no such record, whether it resamples the overviews or copies them with `-co OVERVIEWS=FORCE_USE_EXISTING`, so the converted file's overviews are not reported max-pooled.
 
 ## Cost values
 

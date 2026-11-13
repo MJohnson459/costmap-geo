@@ -1,6 +1,6 @@
 //! Sampling of rasters whose x and y pixel sizes differ slightly.
 
-#[path = "../../../tests/common/gdal.rs"]
+#[path = "common/gdal.rs"]
 mod gdal;
 
 use std::{
